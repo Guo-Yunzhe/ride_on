@@ -23,11 +23,14 @@ class token(object):
         # initialize 
         self.find_config_file_path()
         self.find_token_from_config_file()
+        pass
+
+    def test_internet_connection(self):
         internet_test = self.refresh_access_token()
         if internet_test is not True:
-            print('Internet Connection Error!')
-            sys.exit(1)
-            pass
+            return False 
+        else:
+            return True 
         pass
     
     def find_config_file_path(self, file_name = 'strava_settings.json'):
@@ -142,7 +145,7 @@ class token(object):
         """ 
         ret = subprocess.run(\
             ['curl', '-X', 'POST', 'https://www.strava.com/api/v3/oauth/token', \
-            '-d', 'client_id=%d'%(self.strava_ID),
+            '-d', 'client_id=%s'%(str(self.strava_ID)),
             '-d', 'client_secret=%s'%(self.strava_secret),
             '-d', 'grant_type=refresh_token', 
             '-d', 'refresh_token=%s'%(self.refresh_token)
@@ -184,37 +187,6 @@ class token(object):
         # end
         pass
 
-    def parse_oauth_info_from_json(self):
-        """Extract tokens and other important info from oauth dict.
-        """
-        assert self.oauth_dict is not None 
-        assert type(self.oauth_dict) == type({})
-        self.refresh_token = self.oauth_dict['refresh_token']
-        # to be continued 
-        pass
-    
-    def get_strava_oauth_dict_from_file(self, response_path = '../Strava.json'):
-        """Get Strava response json from disk. Add it to self.oauth_dict .
-
-        Args:
-            response_path (str, optional): the json path. Defaults to 'Strava.json'.
-        """
-        try:
-            assert os.path.exists(response_path)
-        except AssertionError:
-            print('Strava OAuth Response File NOT Exist!')
-            sys.exit(1)
-            pass
-        f = open(response_path,'r')
-        response_str = f.read()
-        f.close()
-        try:
-            self.oauth_dict = eval(response_str)
-        except SyntaxError:
-            print('Wrong Strava OAuth Response File!') 
-            sys.exit(1)
-            pass
-        pass
 
 
 def test_token_management():
