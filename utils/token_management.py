@@ -231,7 +231,7 @@ def test_token_management():
 # x.get_strava_oauth_dict_from_file()
 # x.find_config_file_path()
 
-# command = 'curl -G https://www.strava.com/api/v3/athlete -H "Authorization: Bearer 7421d038cfc2ad5f0dfc1cebb3628da481555afd"'
+# command = 'curl -G https://www.strava.com/api/v3/athlete -H "Authorization: Bearer ~ReplaceWithYourToken"'
 # d = os.popen(command).readlines()
 
 print( t.check_token_avaiable() )
