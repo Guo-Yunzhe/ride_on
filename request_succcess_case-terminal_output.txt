@@ -1,0 +1,28 @@
+Last login: Mon Oct 19 11:45:36 on ttys000
+(base) guoyunzhe@guoyunzhedeiMac ~ % ipython
+Python 3.8.5 (default, Sep  4 2020, 02:22:02) 
+Type 'copyright', 'credits' or 'license' for more information
+IPython 7.18.1 -- An enhanced Interactive Python. Type '?' for help.
+
+In [1]: import requests
+
+In [2]: url = "https://www.strava.com/api/v3/athlete"
+
+In [3]: headers = {}
+
+In [4]: headers['User-Agent'] = 'curl/7.71.1'
+
+In [5]: headers['Authorization'] = "Bearer 2348979445fxxxxx_token
+   ...: 9a8"
+
+In [6]: headers
+Out[6]: 
+{'User-Agent': 'curl/7.71.1',
+ 'Authorization': 'Bearer 2348979445fxxxxx_token'}
+
+In [7]: r = requests.get(url, headers = headers)
+
+In [8]: r.text
+Out[8]: '{"id":xxxxxxx,"username":"xxxxx","resource_state":2,"firstname":"Yunzhe","lastname":"Guo","city":"北京市","state":"北京市","country":"中国","sex":"M", ..........  }'
+
+In [9]: 
