@@ -5,6 +5,7 @@ import sys
 import time 
 import json 
 import subprocess
+import requests
 # todo: add log info 
 
 class token(object):
@@ -72,6 +73,8 @@ class token(object):
             pass
         pass
 
+    # we can use this function to get 
+    # a avaliable access token in anytime !
     def get_access_token(self):
         curr_time = time.time()
         if self.expire_time is not None:
@@ -109,6 +112,7 @@ class token(object):
         res = None 
         # A success_msg_example = '''{"id":xxxxx,"username":"xxx","resource_state":2,"firstname":"Yunzhe","lastname":"Guo","city":"北京市","state":"北京市","country":"中国","sex":"M","premium":true,"summit":true,"created_at":"2018-12-29T02:48:44Z","updated_at":"2020-10-17T09:44:20Z","badge_type_id":1,"profile_medium":"https://xxx","profile":"https://xxx","friend":null,"follower":null}'''
         # A failed_msg_example  = '''{"message":"Authorization Error","errors":[{"resource":"Athlete","field":"access_token","code":"invalid"}]}'''
+        '''
         ret = subprocess.run(\
             ['curl', '-G', 'https://www.strava.com/api/v3/athlete', \
             '-H', 'Authorization: Bearer %s'%(test_token)
@@ -120,6 +124,17 @@ class token(object):
             msg = ret.stdout 
         else:
             return res # Query Failed 
+        ''' 
+        # write content to msg here
+        url = "https://www.strava.com/api/v3/athlete"
+        headers = {}
+        headers['User-Agent'] = 'curl/7.71.1'
+        headers['Authorization'] = "Bearer %s"%(self.access_token)
+        r = requests.get(url, headers = headers)
+        if r.status_code != 200:
+            # r.raise_for_status()
+            return None 
+        msg = r.text
         # then check the response 
         if "Authorization Error" in msg:
             res = False  # Token NOT Avaliable 
@@ -143,6 +158,7 @@ class token(object):
           -d grant_type=refresh_token \
           -d refresh_token=ReplaceWithRefreshToken
         """ 
+        '''
         ret = subprocess.run(\
             ['curl', '-X', 'POST', 'https://www.strava.com/api/v3/oauth/token', \
             '-d', 'client_id=%s'%(str(self.strava_ID)),
@@ -158,6 +174,18 @@ class token(object):
         else:
             return None # Internet Problem
         # print(msg)
+        '''
+        url = "https://www.strava.com/api/v3/oauth/token"
+        payload = {}
+        payload['client_id'] = str(self.strava_ID)
+        payload['client_secret'] = self.strava_secret
+        payload['grant_type'] = 'refresh_token'
+        payload['refresh_token'] = self.refresh_token
+        r = requests.post(url, data = payload)
+        if r.status_code != 200:
+            # r.raise_for_status()
+            return None 
+        msg = r.text
         try: 
             msg_dict = eval(msg)
             self.refresh_token = msg_dict['refresh_token']
@@ -196,6 +224,7 @@ def test_token_management():
 
 # test_token_management()
 
+tt = token()
 
 
 
