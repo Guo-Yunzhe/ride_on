@@ -8,7 +8,7 @@ import subprocess
 import requests
 # todo: add log info 
 
-class token(object):
+class token_manager(object):
     '''Token Management.
     '''
 
@@ -97,11 +97,11 @@ class token(object):
         """
         curr_time = time.time()
         if self.expire_time is not None and 'DEFAULT' in input_token:
-            if curr_time > self.expire_time:
+            if curr_time < self.expire_time - 40:
                 # expired
-                return False 
+                return True  
             else:
-                return True 
+                return False  
             pass 
         # Now self.expire_time is None 
         if 'DEFAULT' in input_token:
@@ -129,7 +129,7 @@ class token(object):
         url = "https://www.strava.com/api/v3/athlete"
         headers = {}
         headers['User-Agent'] = 'curl/7.71.1'
-        headers['Authorization'] = "Bearer %s"%(self.access_token)
+        headers['Authorization'] = "Bearer %s"%(test_token)
         r = requests.get(url, headers = headers)
         if r.status_code != 200:
             # r.raise_for_status()
@@ -217,14 +217,14 @@ class token(object):
 
 
 
-def test_token_management():
-    t = token()
+def use_of_token_management():
+    t = token_manager()
     print( t.get_access_token() ) 
     pass 
 
 # test_token_management()
 
-tt = token()
+tt = token_manager()
 
 
 
