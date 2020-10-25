@@ -17,6 +17,7 @@ class activity_manager(object):
         self.local_activity_record_path = None  # `dict` is a unhashable type
         self.local_activity_list_path = None 
         self.has_path = False 
+        self.has_load_local_storage = False 
         # activity information 
         self.activity_list = None # a list of activity ID 
         self.activity_record = None # a dict storage all activity information 
@@ -29,6 +30,8 @@ class activity_manager(object):
         # --------------------------------
         self.find_local_storage_path()
         assert self.check_path_exist() is True 
+        # -------- load local storage 
+        self.load_local_storage()
         pass
 
     def check_path_exist(self):
@@ -111,15 +114,18 @@ class activity_manager(object):
         if not FIRST_LOAD:
             self.load_activity_list()
             self.load_activity_record()
-            return 
         else: 
             self.activity_list = []
             self.activity_record = {}
-            return 
-
+            pass
+        self.has_load_local_storage = True  
         pass
 
     def update_local_storage(self):
+        if self.has_load_local_storage == False:
+            print('Local Storage NOT Loaded!')
+            ptint('Update Failed!')
+            return False 
         self.update_activity_list()
         self.update_activity_record()
         # then modify the upload config  
@@ -149,7 +155,7 @@ class activity_manager(object):
         pass 
     
     def update_activity_record(self):
-        activity_record_str = json.dumps(self.activity_record, indent= False)
+        activity_record_str = json.dumps(self.activity_record)
         with open(self.local_activity_record_path,'w') as f:
             f.seek(0)
             f.truncate()

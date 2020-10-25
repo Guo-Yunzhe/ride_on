@@ -227,27 +227,10 @@ def use_of_token_management():
     print( t.get_access_token() ) 
     pass 
 
-# test_token_management()
+tt = token_manager() # for test 
 
-tt = token_manager()
-
-
-
-''' test code in history
-# x.get_strava_oauth_dict_from_file()
-# x.find_config_file_path()
-
-# command = 'curl -G https://www.strava.com/api/v3/athlete -H "Authorization: Bearer ~ReplaceWithYourToken"'
-# d = os.popen(command).readlines()
-
-print( t.check_token_avaiable() )
-print(t.access_token)
-t.refresh_access_token()
-print(t.access_token)
-'''
 
 # test code for list activities !!
-
 ''' 
 import time
 import swagger_client
@@ -274,3 +257,22 @@ except ApiException as e:
 # result: Reason: Unauthorized
 # Problem unsolved 
 '''
+
+
+from stravaio import StravaIO
+
+client = StravaIO(access_token=tt.get_access_token() )
+list_activities = client.get_logged_in_athlete_activities(after='last month') # last month is OK 
+
+activity_storage = {}
+
+for a in list_activities:
+    time.sleep(1)
+    each_activity = client.get_activity_by_id(a.id)
+
+    each_activity_dict = each_activity.to_dict()
+    # activity.store_locally()
+    # process each activity 
+    activity_storage[each_activity_dict['id']] = each_activity_dict
+    pass
+
