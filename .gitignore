@@ -1,6 +1,6 @@
 # files may contain sensitive information
 # should not push to remote 
-activities_raw_record.dat
+activities_raw_record.json
 activities_list.json
 update_record.json
 loacl_storage_tmp/

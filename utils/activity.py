@@ -66,7 +66,7 @@ class activity_manager(object):
         local_dir_name = os.path.dirname(res)
         self.local_update_config_path = res 
         self.local_activity_list_path = os.path.join( local_dir_name, 'activities_list.json')
-        self.local_activity_record_path = os.path.join( local_dir_name, 'activities_raw_record.dat')
+        self.local_activity_record_path = os.path.join( local_dir_name, 'activities_raw_record.json')
         if self.check_path_exist() is False:
             f1 = open(self.local_update_config_path, 'w+')
             f2 = open(self.local_activity_list_path, 'w+')
@@ -124,7 +124,7 @@ class activity_manager(object):
     def update_local_storage(self):
         if self.has_load_local_storage == False:
             print('Local Storage NOT Loaded!')
-            ptint('Update Failed!')
+            print('Update Failed!')
             return False 
         self.update_activity_list()
         self.update_activity_record()
@@ -155,7 +155,7 @@ class activity_manager(object):
         pass 
     
     def update_activity_record(self):
-        activity_record_str = json.dumps(self.activity_record)
+        activity_record_str = json.dumps(self.activity_record, indent= True)
         with open(self.local_activity_record_path,'w') as f:
             f.seek(0)
             f.truncate()
@@ -169,7 +169,7 @@ class activity_manager(object):
             '# DIR Local Storage\n',
             '  \n',    
             'There are several files used to store local activities and other information:\n',
-            '- activities_raw_record.dat\n',
+            '- activities_raw_record.json\n',
             '- activities_list.json\n',
             '- update_record.json\n',
         ]
