@@ -205,7 +205,7 @@ class token_manager(object):
         token_dict['STRAVA_SECRET'] = self.strava_secret 
         token_dict['ACCESS_TOKEN' ] = self.access_token 
         token_dict['REFRESH_TOKEN'] = self.refresh_token 
-        json_str = json.dumps(token_dict)
+        json_str = json.dumps(token_dict, indent= True)
         # print(json_str)
         with open(self.conf_file_path, 'w') as f:
             f.seek(0)
@@ -213,6 +213,11 @@ class token_manager(object):
             f.write(json_str)
             pass
         # end
+        pass
+
+    def do_strava_oauth_again(self):
+        from stravaio import strava_oauth2
+        strava_oauth2(client_id=self.strava_ID, client_secret=self.strava_secret)
         pass
 
 
@@ -241,5 +246,31 @@ t.refresh_access_token()
 print(t.access_token)
 '''
 
+# test code for list activities !!
 
+''' 
+import time
+import swagger_client
+from swagger_client.rest import ApiException
+from pprint import pprint
 
+# Configure OAuth2 access token for authorization: strava_oauth
+swagger_client.configuration.access_token = tt.get_access_token()
+
+# create an instance of the API class
+api_instance = swagger_client.ActivitiesApi()
+before = 1603622307  # Integer | An epoch timestamp to use for filtering activities that have taken place before a certain time. (optional)
+after = 1602412730 # Integer | An epoch timestamp to use for filtering activities that have taken place after a certain time. (optional)
+page = 1 # Integer | Page number. Defaults to 1. (optional)
+per_page = 30 # Integer | Number of items per page. Defaults to 30. (optional) (default to 30)
+
+try: 
+    # List Athlete Activities
+    api_response = api_instance.get_logged_in_athlete_activities_with_http_info(before=before, after=after, page=page, per_page = per_page)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling ActivitiesApi->getLoggedInAthleteActivities: %s\n" % e)
+
+# result: Reason: Unauthorized
+# Problem unsolved 
+'''
