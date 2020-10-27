@@ -17,10 +17,10 @@ class activity_manager(object):
         self.local_activity_record_path = None  # `dict` is a unhashable type
         self.local_activity_list_path = None 
         self.has_path = False 
-        self.has_load_local_storage = False 
+        self.local_storage_loaded = False 
         # activity information 
-        self.activity_list = None # a list of activity ID 
-        self.activity_record = None # a dict storage all activity information 
+        self.activity_list = None # a list of activity ID, keys of dict activity_storage
+        self.activity_storage = None # a dict that store all activity information 
         # update information 
         self.update_info_loaded = False 
         self.last_update_timestamp = None # when fetch new activities, we use `after = self.last_update_timestamp`
@@ -33,6 +33,22 @@ class activity_manager(object):
         # -------- load local storage 
         self.load_local_storage()
         pass
+    
+    # merge two dict into one dict 
+    # but not update
+    def merge_activity_storage(self, fetched_activities):
+        assert self.local_storage_loaded is True
+        assert type(fetched_activities) == type({})
+        # get keys 
+        key_list = list( fetched_activities.keys() ) 
+        # update self.activity storage
+        for each_key in key_list:
+            if each_key not in self.activity_list:
+                self.activity_storage[each_key] = fetched_activities[each_key]
+                self.activity_list.append(each_key)
+                pass
+            pass
+        pass # end of `merge_activity_storage` 
 
     def check_path_exist(self):
         c1 = os.path.exists(self.local_update_config_path)
@@ -89,7 +105,7 @@ class activity_manager(object):
         with open(self.local_activity_record_path, 'r') as f:
             activity_record_str = f.read()
             pass 
-        self.activity_record = json.loads(activity_record_str)
+        self.activity_storage = json.loads(activity_record_str)
         pass
 
     def load_local_storage(self):
@@ -116,13 +132,13 @@ class activity_manager(object):
             self.load_activity_record()
         else: 
             self.activity_list = []
-            self.activity_record = {}
+            self.activity_storage = {}
             pass
-        self.has_load_local_storage = True  
+        self.local_storage_loaded = True  
         pass
 
     def update_local_storage(self):
-        if self.has_load_local_storage == False:
+        if self.local_storage_loaded == False:
             print('Local Storage NOT Loaded!')
             print('Update Failed!')
             return False 
@@ -155,7 +171,7 @@ class activity_manager(object):
         pass 
     
     def update_activity_record(self):
-        activity_record_str = json.dumps(self.activity_record, indent= True)
+        activity_record_str = json.dumps(self.activity_storage, indent= True)
         with open(self.local_activity_record_path,'w') as f:
             f.seek(0)
             f.truncate()
@@ -176,7 +192,7 @@ class activity_manager(object):
         return readme_list
     pass 
 
-aa = activity_manager()
+# aa = activity_manager()
 
 
 

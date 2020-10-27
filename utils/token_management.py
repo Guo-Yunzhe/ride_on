@@ -26,7 +26,7 @@ class token_manager(object):
         self.find_token_from_config_file()
         pass
 
-    def test_internet_connection(self):
+    def test(self):
         internet_test = self.refresh_access_token()
         if internet_test is not True:
             return False 
@@ -112,20 +112,6 @@ class token_manager(object):
         res = None 
         # A success_msg_example = '''{"id":xxxxx,"username":"xxx","resource_state":2,"firstname":"Yunzhe","lastname":"Guo","city":"北京市","state":"北京市","country":"中国","sex":"M","premium":true,"summit":true,"created_at":"2018-12-29T02:48:44Z","updated_at":"2020-10-17T09:44:20Z","badge_type_id":1,"profile_medium":"https://xxx","profile":"https://xxx","friend":null,"follower":null}'''
         # A failed_msg_example  = '''{"message":"Authorization Error","errors":[{"resource":"Athlete","field":"access_token","code":"invalid"}]}'''
-        '''
-        ret = subprocess.run(\
-            ['curl', '-G', 'https://www.strava.com/api/v3/athlete', \
-            '-H', 'Authorization: Bearer %s'%(test_token)
-            ],\
-            shell=True,stdout=subprocess.PIPE,\
-            stderr=subprocess.PIPE,encoding="utf-8",\
-            timeout=15) # usually 15s is enough
-        if ret.returncode == 0:
-            msg = ret.stdout 
-        else:
-            return res # Query Failed 
-        ''' 
-        # write content to msg here
         url = "https://www.strava.com/api/v3/athlete"
         headers = {}
         headers['User-Agent'] = 'curl/7.71.1'
@@ -158,23 +144,6 @@ class token_manager(object):
           -d grant_type=refresh_token \
           -d refresh_token=ReplaceWithRefreshToken
         """ 
-        '''
-        ret = subprocess.run(\
-            ['curl', '-X', 'POST', 'https://www.strava.com/api/v3/oauth/token', \
-            '-d', 'client_id=%s'%(str(self.strava_ID)),
-            '-d', 'client_secret=%s'%(self.strava_secret),
-            '-d', 'grant_type=refresh_token', 
-            '-d', 'refresh_token=%s'%(self.refresh_token)
-            ],\
-            shell=True,stdout=subprocess.PIPE,\
-            stderr=subprocess.PIPE,encoding="utf-8",\
-            timeout=15) # usually 15s is enough
-        if ret.returncode == 0:
-            msg = ret.stdout 
-        else:
-            return None # Internet Problem
-        # print(msg)
-        '''
         url = "https://www.strava.com/api/v3/oauth/token"
         payload = {}
         payload['client_id'] = str(self.strava_ID)
@@ -195,7 +164,7 @@ class token_manager(object):
             self.write_tokens_to_config_file()
             return True
         except KeyError: # query Failed
-            print('Key Error when refresh access token!')
+            print('Error when refreshing access token!')
             return False 
         pass
 
@@ -227,7 +196,7 @@ def use_of_token_management():
     print( t.get_access_token() ) 
     pass 
 
-tt = token_manager() # for test 
+# tt = token_manager() # for test 
 
 
 # test code for list activities !!
@@ -259,13 +228,18 @@ except ApiException as e:
 '''
 
 
+# test code using StravaIO
+'''
 from stravaio import StravaIO
 
 client = StravaIO(access_token=tt.get_access_token() )
-list_activities = client.get_logged_in_athlete_activities(after='last month') # last month is OK 
+# Last Month String, test OK
+# list_activities = client.get_logged_in_athlete_activities(after='last month') 
 
-activity_storage = {}
+# is integer timestamp OK ? Yes!
+list_activities = client.get_logged_in_athlete_activities(after=1601984175) 
 
+fetched_activity_storage = {}
 for a in list_activities:
     time.sleep(1)
     each_activity = client.get_activity_by_id(a.id)
@@ -273,6 +247,7 @@ for a in list_activities:
     each_activity_dict = each_activity.to_dict()
     # activity.store_locally()
     # process each activity 
-    activity_storage[each_activity_dict['id']] = each_activity_dict
+    fetched_activity_storage[each_activity_dict['id']] = each_activity_dict
     pass
 
+'''
