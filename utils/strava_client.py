@@ -3,6 +3,7 @@
 # currently we use stravaio 
 
 import time 
+import random
 import requests
 
 from stravaio import StravaIO
@@ -41,34 +42,47 @@ class strava_client(object):
         pass
 
     def fetch_activities_last_month(self, month_cnt):
-        assert type(month_cnt) == type(8)
+        # assert type(month_cnt) == type(8) # we set month cnt can be float
         assert month_cnt > 0
         now = int(time.time())
-        last_month = now -  31 * 24 * 3600
+        last_month = int( now -  month_cnt * (31 * 24 * 3600 ) )  # fix bug  
         fetched_activities = self.fetch_activities_after(last_month)
         self.activity_manager.merge_activity_storage(fetched_activities)
-        print('Activity after Last %2d Month(%d) Fetched.' % (month_cnt, last_month) )
+        print('Activity after Last %g Month(%d) Fetched.' % (month_cnt, last_month) )
+        self.activity_manager.update_local_storage()
         pass
     
-    def fetch_activities_last_year(self):
+    def fetch_activities_last_year(self, year_cnt = 1):
         now = int(time.time())
-        last_year = now - 366 * 24 * 3600 
+        last_year = int(now - 366 * 24 * 3600 * year_cnt)
         fetched_activities = self.fetch_activities_after(last_year)
         self.activity_manager.merge_activity_storage(fetched_activities)
-        print('Activity after Last Year(%d) Fetched.' % last_year)
+        print('Activity after Last %g Year(%d) Fetched.' % (year_cnt, last_year))
+        self.activity_manager.update_local_storage()
         pass
 
     def fetch_activities_after(self, input_timestamp = 1595161543):
+        # the actual fetch method
+        # TODO should update the `update config` in activity manager
+        #   - last update time
+        #   - update count
+        #   - known earlist time stamp 
         list_activities = self.client.get_logged_in_athlete_activities(after = input_timestamp)
         fetched_activities = {}
-        for a in list_activities: # CAN BE OPTIMIZED by using existing activity list !!!
-            time.sleep(self.FETCH_INTERVAL)
+        for a in list_activities: 
+            if a.id in self.activity_manager.activity_list:
+                print('Activity %d already stored in local, skip.' % a.id) 
+                time.sleep(1 + random.random() * 3 )
+                continue
+            time.sleep(self.FETCH_INTERVAL + random.random() * 2)
+            print('Fetching Activity, ID is  %d ...' % a.id)
             each_activity = self.client.get_activity_by_id(a.id)
             each_activity_dict = each_activity.to_dict()
             # activity.store_locally()
             # process each activity 
             fetched_activities[each_activity_dict['id']] = each_activity_dict
             pass
+        # here the fetch operation is over 
         return fetched_activities  # end of method `fetch_activities_after`
 
     pass  # end of the class 
@@ -85,10 +99,12 @@ except:
 
 cc = strava_client(token_manager= token_manager() , activity_manager= activity_manager() )
 
+aa = cc.activity_manager
+
 print('Before')
 print(cc.activity_manager.activity_list)
 
-cc.fetch_activities_last_month(3)
+cc.fetch_activities_last_month(2.5)
 
 print('After')
 print(cc.activity_manager.activity_list)

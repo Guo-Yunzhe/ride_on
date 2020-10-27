@@ -58,7 +58,7 @@ class activity_manager(object):
         return self.has_path
     
         
-    def find_local_storage_path(self, file_name = 'update_record.json '):
+    def find_local_storage_path(self, file_name = 'update_record.json'): # bug fix 
         """Find the path of Activity Update Config File.
         The config file should be a json file.
         This function exit when it failed to find the path.
@@ -84,6 +84,7 @@ class activity_manager(object):
         self.local_activity_list_path = os.path.join( local_dir_name, 'activities_list.json')
         self.local_activity_record_path = os.path.join( local_dir_name, 'activities_raw_record.json')
         if self.check_path_exist() is False:
+            print('Creating Local Storage Files ...')
             f1 = open(self.local_update_config_path, 'w+')
             f2 = open(self.local_activity_list_path, 'w+')
             f3 = open(self.local_activity_record_path, 'w+')
@@ -109,7 +110,6 @@ class activity_manager(object):
         pass
 
     def load_local_storage(self):
-        # todo: load the update config json 
         with open(self.local_update_config_path, 'r') as f :
             update_config_str = f.read()
             pass
@@ -135,12 +135,14 @@ class activity_manager(object):
             self.activity_storage = {}
             pass
         self.local_storage_loaded = True  
+        # fix bug ...
+        self.update_local_storage()   
         pass
 
     def update_local_storage(self):
         if self.local_storage_loaded == False:
             print('Local Storage NOT Loaded!')
-            print('Update Failed!')
+            # print('Update Failed!')
             return False 
         self.update_activity_list()
         self.update_activity_record()
@@ -171,7 +173,11 @@ class activity_manager(object):
         pass 
     
     def update_activity_record(self):
-        activity_record_str = json.dumps(self.activity_storage, indent= True)
+        activity_record_str = json.dumps(
+            self.activity_storage, \
+            indent= True, \
+            ensure_ascii=True # ensure ascii is very important 
+            ) 
         with open(self.local_activity_record_path,'w') as f:
             f.seek(0)
             f.truncate()

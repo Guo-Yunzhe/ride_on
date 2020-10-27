@@ -227,11 +227,11 @@ except ApiException as e:
 # Problem unsolved 
 '''
 
-
-# test code using StravaIO
 '''
-from stravaio import StravaIO
+# test code using StravaIO
 
+from stravaio import StravaIO
+tt = token_manager()
 client = StravaIO(access_token=tt.get_access_token() )
 # Last Month String, test OK
 # list_activities = client.get_logged_in_athlete_activities(after='last month') 
