@@ -24,8 +24,9 @@ class activity_manager(object):
         # update information 
         self.update_info_loaded = False 
         self.last_update_timestamp = None # when fetch new activities, we use `after = self.last_update_timestamp`
-        self.earliest_known_timestamp = None # we sure that time between [[self.earliest_known_timestamp, self.last_update_timestamp]] is updated
-        self.update_record_dict = None # this dict record the API request count every day, Strava have request limit per day and per hour
+        self.earliest_known_timestamp = None # usually, time between [[self.earliest_known_timestamp, self.last_update_timestamp]] is updated
+        # for this dict, we use `time.strftime("%Y-%m-%d")` as key 
+        self.update_record_dict = None # this dict record the API request count every day, Strava have request limit per day 
         # initialized operations
         # --------------------------------
         self.find_local_storage_path()
@@ -33,6 +34,40 @@ class activity_manager(object):
         # -------- load local storage 
         self.load_local_storage()
         pass
+    
+    # add one update record 
+    def fetch_API_record_counter_click(self, cnt = 1 ):
+        # cnt should be 1 in most cases 
+        assert type(cnt) == type(101)
+        key = time.strftime("%Y-%m-%d")
+        value = self.update_record_dict.get(key, 0) + 1 
+        self.update_record_dict[key] = value 
+        # should we write to disk now ?
+        pass 
+
+    def check_earliest_latest_time(self):
+        res_earliest = float('inf')
+        res_latest   = 0 
+        for aid in self.activity_list:
+            each_activity_start_time_str = self.activity_storage[str(aid)]['start_date'] # we do not use local time here 
+            each_timestamp = activity_manager.datetime_2_timestamp(each_activity_start_time_str)
+            if each_timestamp < res_earliest:
+                res_earliest = each_timestamp
+            if each_timestamp > res_latest:
+                res_latest   = each_timestamp
+            pass
+        # write to self, should be int 
+        self.earliest_known_timestamp = res_earliest
+        self.last_update_timestamp    = res_latest
+        pass
+    
+    @staticmethod
+    def datetime_2_timestamp(date_time_str):
+        assert type(date_time_str) == type('2020-10-11T13:41:31Z')
+        d = datetime.datetime.strptime(date_time_str, "%Y-%m-%dT%H:%M:%SZ")
+        t = d.timetuple()
+        time_stamp = int(time.mktime(t))
+        return time_stamp
     
     # merge two dict into one dict 
     # but not update
@@ -119,7 +154,7 @@ class activity_manager(object):
         except:
             update_config = {}
             update_config['last_update_time'] = 327 # means first load, no fetch yet 
-            update_config['earliest_known_time'] = int(time.time())
+            update_config['earliest_known_time'] = 327
             update_config['update_record_dict'] = {}
             FIRST_LOAD = True 
             pass 
@@ -135,7 +170,6 @@ class activity_manager(object):
             self.activity_storage = {}
             pass
         self.local_storage_loaded = True  
-        # fix bug ...
         self.update_local_storage()   
         pass
 
@@ -146,7 +180,8 @@ class activity_manager(object):
             return False 
         self.update_activity_list()
         self.update_activity_record()
-        # then modify the upload config  
+        # then modify the upload config 
+        self.check_earliest_latest_time() 
         update_config = {}
         update_config['last_update_time'] = self.last_update_timestamp
         update_config['earliest_known_time'] = self.earliest_known_timestamp
