@@ -71,7 +71,7 @@ class strava_client(object):
         self.activity_manager.update_local_storage()
         pass 
 
-    def fetch_activities_after(self, input_timestamp = 1595161543):
+    def fetch_activities_after(self, input_timestamp = 1595161543, update_local_every_fetch = True):
         # the actual fetch method
         #==========================================
         # this line of code query activities list, but not fetch exact activity infomation
@@ -81,12 +81,12 @@ class strava_client(object):
         fetched_activities = {}
         # this loop fetch exact activity information
         for a in list_activities: 
-            if a.id in self.activity_manager.activity_list:
-                print('Activity %d already stored in local, skip.' % a.id) 
+            if str(a.id) in self.activity_manager.activity_list:
+                print('Activity %d already stored in disk, skip.' % a.id) 
                 time.sleep(0.327 + random.random() * 3 )
                 continue
             time.sleep(self.FETCH_INTERVAL + random.random() * 2)
-            print('Fetching Activity, ID is  %d ...' % a.id)
+            print('Fetching Activity, ID is %d ...' % a.id)
             # initialize client 
             tmp_strava_client = StravaIO(access_token=self.token_manager.get_access_token() )
             each_activity = tmp_strava_client.get_activity_by_id(a.id)
@@ -94,7 +94,12 @@ class strava_client(object):
             each_activity_dict = each_activity.to_dict()
             # activity.store_locally()
             # process each activity 
-            fetched_activities[each_activity_dict['id']] = each_activity_dict
+            fetched_activities[str(each_activity_dict['id'])] = each_activity_dict
+            # write to disk every fetch
+            if update_local_every_fetch == True:
+                self.activity_manager.merge_activity_storage(fetched_activities)
+                self.activity_manager.update_local_storage()
+                pass
             pass
         # here the fetch operation is over 
         return fetched_activities  # end of method `fetch_activities_after`
