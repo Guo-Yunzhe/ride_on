@@ -87,14 +87,16 @@ class strava_client(object):
                 continue
             time.sleep(self.FETCH_INTERVAL + random.random() * 2)
             print('Fetching Activity, ID is %d ...' % a.id)
-            # initialize client 
-            tmp_strava_client = StravaIO(access_token=self.token_manager.get_access_token() )
-            each_activity = tmp_strava_client.get_activity_by_id(a.id)
-            self.activity_manager.fetch_API_record_counter_click()
-            each_activity_dict = each_activity.to_dict()
-            # activity.store_locally()
-            # process each activity 
-            fetched_activities[str(each_activity_dict['id'])] = each_activity_dict
+            # initialize client and fetch 
+            try:
+                tmp_strava_client = StravaIO(access_token=self.token_manager.get_access_token() )
+                each_activity = tmp_strava_client.get_activity_by_id(a.id)
+                self.activity_manager.fetch_API_record_counter_click()
+                each_activity_dict = each_activity.to_dict()
+                fetched_activities[str(each_activity_dict['id'])] = each_activity_dict
+            except: # TODO we need expand more error and handle method here !
+                print('An ERROR occured when fetching activity %d'%(a.id))
+                continue # go to fetch next activity
             # write to disk every fetch
             if update_local_every_fetch == True:
                 self.activity_manager.merge_activity_storage(fetched_activities)
