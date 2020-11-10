@@ -3,10 +3,33 @@
 # currently we use stravaio 
 
 import time 
+import signal
 import random
-import requests
+# import requests
 
 from stravaio import StravaIO
+from contextlib import contextmanager
+
+class TimeoutException(Exception): pass
+@contextmanager
+def time_limit(seconds):
+    def signal_handler(signum, frame):
+        raise TimeoutException("Timed out!")
+    signal.signal(signal.SIGALRM, signal_handler)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+        pass
+    pass 
+'''
+try:
+    with time_limit(10):
+        long_function_call()
+except TimeoutException as e:
+    print("Timed out!")
+'''
 
 class strava_client(object):
     '''
@@ -33,6 +56,7 @@ class strava_client(object):
         # self.client = StravaIO(access_token=self.token_manager.get_access_token() )
         # and other variables
         self.FETCH_INTERVAL = 10.24 # wait interval should > 9s, because strava limits 100 queries every 15 mins 
+        self.TIMEOUT_VALUE = 35 
         pass 
 
     # for now we only support *after* a time stamp
@@ -40,7 +64,7 @@ class strava_client(object):
         assert year is not None # year = 2020 or 2019
         # need datetime -> timestamp 
         # 2017.1.1 -> time stamp xxx 
-
+        # to be continued ... 
         pass
 
     def fetch_activities_last_month(self, month_cnt = 2):
@@ -76,26 +100,44 @@ class strava_client(object):
         #==========================================
         # this line of code query activities list, but not fetch exact activity infomation
         tmp_strava_client = StravaIO(access_token=self.token_manager.get_access_token() )
-        list_activities = tmp_strava_client.get_logged_in_athlete_activities(after = input_timestamp)
+        try:
+            with time_limit(self.TIMEOUT_VALUE):
+                list_activities = tmp_strava_client.get_logged_in_athlete_activities(after = input_timestamp)
+                pass
+            pass
+        except TimeoutException as e:
+            print('Fetching Activity List Timeout!')
+            return {}
+        except: 
+            print('Unknow ERROR when fetching activities!')
+            return {}
         self.activity_manager.fetch_API_record_counter_click()
         fetched_activities = {}
+        # add shuffle 
+        random.shuffle(list_activities)
         # this loop fetch exact activity information
         for a in list_activities: 
             if str(a.id) in self.activity_manager.activity_list:
                 print('Activity %d already stored in disk, skip.' % a.id) 
-                time.sleep(0.327 + random.random() * 3 )
+                # time.sleep(0.1 )
                 continue
             time.sleep(self.FETCH_INTERVAL + random.random() * 2)
-            print('Fetching Activity, ID is %d ...' % a.id)
+            print('Fetching Activity, ID is %d ...   ' % a.id, end='')
             # initialize client and fetch 
             try:
                 tmp_strava_client = StravaIO(access_token=self.token_manager.get_access_token() )
-                each_activity = tmp_strava_client.get_activity_by_id(a.id)
+                with time_limit(self.TIMEOUT_VALUE):
+                    each_activity = tmp_strava_client.get_activity_by_id(a.id)
+                    pass 
                 self.activity_manager.fetch_API_record_counter_click()
                 each_activity_dict = each_activity.to_dict()
                 fetched_activities[str(each_activity_dict['id'])] = each_activity_dict
+                print('DONE.')
+            except TimeoutException as e:
+                print('Fetching Activity ID %d Timeout!'%(a.id))
+                continue 
             except: # TODO we need expand more error and handle method here !
-                print('An ERROR occured when fetching activity %d'%(a.id))
+                print('Unkonwn ERROR occured when fetching activity %d!'%(a.id))
                 continue # go to fetch next activity
             # write to disk every fetch
             if update_local_every_fetch == True:

@@ -1,7 +1,6 @@
 import time 
 import datetime 
 import os 
-import sys 
 import json 
 
 
@@ -43,6 +42,7 @@ class activity_manager(object):
         value = self.update_record_dict.get(key, 0) + 1 
         self.update_record_dict[key] = value 
         # should we write to disk now ?
+        self.update_upload_config()
         pass 
 
     def check_earliest_latest_time(self):
@@ -181,6 +181,10 @@ class activity_manager(object):
         self.update_activity_list()
         self.update_activity_record()
         # then modify the upload config 
+        self.update_upload_config()
+        pass
+
+    def update_upload_config(self):
         self.check_earliest_latest_time() 
         update_config = {}
         update_config['last_update_time'] = self.last_update_timestamp
