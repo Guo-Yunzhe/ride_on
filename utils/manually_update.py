@@ -14,7 +14,7 @@ aa = cc.activity_manager
 print('Before')
 print(cc.activity_manager.activity_list)
 
-cc.fetch_activities_last_month(5)
+cc.fetch_activities_last_month(9)
 
 print('After')
 print(cc.activity_manager.activity_list)

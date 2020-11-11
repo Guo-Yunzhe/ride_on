@@ -101,6 +101,7 @@ class strava_client(object):
         # this line of code query activities list, but not fetch exact activity infomation
         tmp_strava_client = StravaIO(access_token=self.token_manager.get_access_token() )
         try:
+            self.activity_manager.fetch_API_record_counter_click()
             with time_limit(self.TIMEOUT_VALUE):
                 list_activities = tmp_strava_client.get_logged_in_athlete_activities(after = input_timestamp)
                 pass
@@ -108,10 +109,10 @@ class strava_client(object):
         except TimeoutException as e:
             print('Fetching Activity List Timeout!')
             return {}
-        except: 
-            print('Unknow ERROR when fetching activities!')
+        except Exception as e: 
+            print('Unknow ERROR when fetching activities: ', end='')
+            print(e)
             return {}
-        self.activity_manager.fetch_API_record_counter_click()
         fetched_activities = {}
         # add shuffle 
         random.shuffle(list_activities)
@@ -119,25 +120,27 @@ class strava_client(object):
         for a in list_activities: 
             if str(a.id) in self.activity_manager.activity_list:
                 print('Activity %d already stored in disk, skip.' % a.id) 
-                # time.sleep(0.1 )
+                time.sleep(0.3)
                 continue
             time.sleep(self.FETCH_INTERVAL + random.random() * 2)
             print('Fetching Activity, ID is %d ...   ' % a.id, end='')
             # initialize client and fetch 
             try:
                 tmp_strava_client = StravaIO(access_token=self.token_manager.get_access_token() )
+                self.activity_manager.fetch_API_record_counter_click()
                 with time_limit(self.TIMEOUT_VALUE):
                     each_activity = tmp_strava_client.get_activity_by_id(a.id)
                     pass 
-                self.activity_manager.fetch_API_record_counter_click()
                 each_activity_dict = each_activity.to_dict()
                 fetched_activities[str(each_activity_dict['id'])] = each_activity_dict
                 print('DONE.')
             except TimeoutException as e:
                 print('Fetching Activity ID %d Timeout!'%(a.id))
                 continue 
-            except: # TODO we need expand more error and handle method here !
-                print('Unkonwn ERROR occured when fetching activity %d!'%(a.id))
+            except Exception as e: # TODO we need expand more error and handle method here !
+                print('Unkonwn ERROR occured when fetching activity %d: '%(a.id), end='')
+                print(e)
+                # TODO: StravaIO raise error when activity type is VirtualRide, this is not good. 
                 continue # go to fetch next activity
             # write to disk every fetch
             if update_local_every_fetch == True:
