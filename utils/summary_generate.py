@@ -26,6 +26,19 @@ class summary_generator(object):
 
         pass 
 
+    def split_activities_by_month(self):
+
+
+        pass
+
+    def get_activity_info(self, activity_ID):
+        assert type(activity_ID) == str 
+        a = self.activity_dict[activity_ID]
+        # what is the return type ? 
+
+        pass 
+
+    
 
 #  test code  
 ss = summary_generator(activity_manager= activity_manager() )

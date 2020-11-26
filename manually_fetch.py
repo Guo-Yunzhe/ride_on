@@ -11,11 +11,9 @@ cc = strava_client(token_manager= token_manager() , activity_manager= activity_m
 
 aa = cc.activity_manager
 
-print('Before')
-print(cc.activity_manager.activity_list)
+print('Before: %d activities' %(len(cc.activity_manager.activity_list)) )
 
+# we automatically update, use this single line of code 
 cc.fetch_activities_last_month(0.6)
 
-print('After')
-print(cc.activity_manager.activity_list)
-
+print('After: %d activities' %(len(cc.activity_manager.activity_list))) 
